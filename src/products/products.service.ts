@@ -73,26 +73,36 @@ export class ProductsService {
     }
   }*/
 
-  async update(id: string, updateProductDto: UpdateProductDto, user: any) { // Modify 'any' to your 'User' type
-    const { images, ...productToUpdate } = updateProductDto;
+  async update(id: string, updateProductDto: UpdateProductDto, user: any) {
+  const { images, ...productToUpdate } = updateProductDto;
 
-    const product = await this.prisma.product.update({
-      where: { id },
-      data: {
-        ...productToUpdate,
-        user: { connect: { id: user.id } }, // Update according to your user id field
-        images: {
-          deleteMany: {}, // Deletes all existing images
-          create: images.map(image => ({ url: image })), // Creates new images
-        },
-      },
-      include: { images: true }
-    });
+  return this.prisma.$transaction(async (prisma) => {
+    let product = await prisma.product.findUnique({ where: { id } });
 
     if (!product) throw new NotFoundException(`Product with id: ${id} not found`);
 
-    return product;
-  }
+    const updateData: any = {
+      ...productToUpdate,
+      user: { connect: { id: user.id } }, // Update according to your user id field
+    };
+
+    if (images) {
+      updateData.images = {
+        deleteMany: {}, // Deletes all existing images
+        create: images.map(image => ({ url: image })), // Creates new images
+      };
+    }
+
+    product = await prisma.product.update({
+      where: { id },
+      data: updateData,
+      include: { images: true },
+    });
+
+    return product; // O adaptarlo para que coincida con el formato que necesitas
+  });
+}
+
 
   async remove(id: string) {
     await this.prisma.product.delete({
