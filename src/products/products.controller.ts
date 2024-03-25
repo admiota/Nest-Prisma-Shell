@@ -14,11 +14,11 @@ import { ApiResponse, ApiTags } from '@nestjs/swagger';
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
-  @Post()
-  @Auth()
   /*@ApiResponse({ status: 201, description: 'Product was created', type: Product})
   @ApiResponse({ status: 400, description: 'Bad Request'})
   @ApiResponse({ status: 403, description: 'Forbidden. Token related'})*/
+  @Post()
+  @Auth(ValidRoles.admin)
   create(@Body() createProductDto: CreateProductDto, @GetUser() user:any) {
     return this.productsService.create(createProductDto, user);
   }
@@ -28,10 +28,10 @@ export class ProductsController {
     return this.productsService.findAll(paginationDto);
   }
 
-  /*@Get(':term')
+  @Get(':term')
   findOne(@Param('term') term: string) {
-    return this.productsService.findOnePlain(term);
-  }*/
+    return this.productsService.findOne(term);
+  }
 
   @Patch(':id')
   @Auth(ValidRoles.admin)

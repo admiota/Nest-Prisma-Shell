@@ -105,10 +105,22 @@ export class ProductsService {
 
 
   async remove(id: string) {
-    await this.prisma.product.delete({
-      where: { id },
+    const product = await this.prisma.product.findUnique({
+        where: { id },
     });
+
+    if (!product) {
+        throw new Error('Product not found');
+    }
+
+    await this.prisma.product.delete({
+        where: { id },
+    });
+
+    return 'Deleted Successfully';
   }
+
+
 
   async deleteAllProducts() {
     try {

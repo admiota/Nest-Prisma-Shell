@@ -15,25 +15,26 @@ export class FilesController {
     private readonly configService: ConfigService
   ) { }
 
-  @Get('product/:imageName')
+  @Get('uploads/:imageName')
   findProductImage(@Res() res: Response,  @Param('imageName') imageName: string) { //Con el decorador @Res nosotros somos los encargados se enviar la respuesta al usuario(y no va a ser Nest)
     const path = this.filesService.getStaticProductImage(imageName);
+    console.log(path)
     res.sendFile(path);
     return path;
   }
 
-  @Post('product')
+  @Post('uploads')
   @UseInterceptors(FileInterceptor('file', {
     fileFilter: fileFilter,
     storage: diskStorage({
-      destination: './static/products',
+      destination: './static/uploads',
       filename: fileNamer
     })
     //limits:{fileSize: 1000}  //podemos poner un límite de tamaño tipo 100 Bytes
   }))
   uploadProductFile(@UploadedFile() file: Express.Multer.File) {
     if (!file) throw new BadRequestException(`Make sure that the file is an image`);
-    const secureUrl = `${this.configService.get('HOST_API')}/files/product/${file.filename}`;
+    const secureUrl = `${this.configService.get('HOST_API')}/files/uploads/${file.filename}`;
     return { secureUrl };
   }
 }
